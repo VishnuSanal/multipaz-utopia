@@ -67,7 +67,29 @@ plugins {
     alias(libs.plugins.buildconfig) apply false
     alias(libs.plugins.skie) apply false
 
+    alias(libs.plugins.detekt) apply false
+
     id("org.jetbrains.dokka") version "2.1.0"
+}
+
+val detektModules = listOf(
+    ":multipaz",
+    ":multipaz-compose",
+    ":multipaz-dcapi",
+    ":multipaz-doctypes",
+    ":multipaz-longfellow",
+)
+
+subprojects {
+    if (path in detektModules) {
+
+        apply(plugin = "io.gitlab.arturbosch.detekt")
+
+        extensions.configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+            config.setFrom(files("$rootDir/config/detekt/detekt.yml"))
+            baseline = file("$projectDir/config/detekt/baseline.xml")
+        }
+    }
 }
 
 dependencies {
