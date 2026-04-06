@@ -170,3 +170,11 @@ dependencies {
     dokka(project(":multipaz-cbor-rpc"))
     dokka(project(":multipaz-android-legacy"))
 }
+
+subprojects {
+    plugins.withId("org.jetbrains.dokka") {
+        dependencies {
+            "dokkaPlugin"("org.multipaz:dokka-known-subclasses-plugin:1.0.0")
+        }
+    }
+}

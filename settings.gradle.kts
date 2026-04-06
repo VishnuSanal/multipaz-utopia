@@ -31,6 +31,15 @@ pluginManagement {
     }
 }
 
+// Separate includeBuild so that non-plugin dependencies (e.g. dokkaPlugin) from
+// build-logic can be resolved via composite build substitution.
+includeBuild("build-logic") {
+    dependencySubstitution {
+        substitute(module("org.multipaz:dokka-known-subclasses-plugin"))
+            .using(project(":dokka-known-subclasses-plugin"))
+    }
+}
+
 dependencyResolutionManagement {
     repositories {
         google {
