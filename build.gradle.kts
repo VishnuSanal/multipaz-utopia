@@ -166,6 +166,7 @@ dependencies {
     dokka(project(":multipaz-compose"))
     dokka(project(":multipaz-dcapi"))
     dokka(project(":multipaz-doctypes"))
+    dokka(project(":multipaz-utopia"))
     dokka(project(":multipaz-longfellow"))
     dokka(project(":multipaz-cbor-rpc"))
     dokka(project(":multipaz-android-legacy"))
