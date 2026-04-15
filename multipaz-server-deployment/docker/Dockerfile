@@ -44,7 +44,7 @@ RUN mkdir -p /app/data /app/logs && chown -R multipaz:multipaz /app
 
 # nginx needs to write to these directories
 RUN mkdir -p /var/lib/nginx/body /var/log/nginx /run /run/nginx && \
-    chown -R multipaz:multipaz /var/lib/nginx /var/log/nginx /run /run/nginx
+    chown -R multipaz:multipaz /var/lib/nginx /var/log/nginx /run /run/nginx /etc/nginx /etc/multipaz
 
 USER multipaz
 
