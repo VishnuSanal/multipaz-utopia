@@ -1,6 +1,6 @@
 plugins {
     id("java-library")
-    id("org.jetbrains.kotlin.jvm")
+    alias(libs.plugins.jetbrains.kotlin.jvm)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.ktor)
@@ -12,7 +12,7 @@ application {
 
 // Runtime configuration for local/dev execution.
 // Usage example:
-//   ./gradlew multipaz-utopia:organizations:brewery:backend:run \
+//   ./gradlew :organizations:brewery:backend:run \
 //     -PbreweryBaseUrl=http://192....:8010
 val breweryBaseUrl = providers.gradleProperty("breweryBaseUrl").orNull
 
@@ -41,14 +41,14 @@ java {
 }
 
 dependencies {
-    ksp(project(":multipaz-cbor-rpc"))
-    implementation(project(":multipaz"))
-    implementation(project(":multipaz-doctypes"))
-    implementation(project(":multipaz-utopia"))
-    implementation(project(":multipaz-longfellow"))
-    implementation(project(":multipaz-server"))
-    implementation(project(":multipaz-verifier"))
-    implementation(project(":multipaz-verifier-server"))
+    ksp(libs.multipaz.cbor.rpc)
+    implementation(libs.multipaz)
+    implementation(libs.multipaz.doctypes)
+    implementation(libs.multipaz.utopia)
+    implementation(libs.multipaz.longfellow)
+    implementation(libs.multipaz.server)
+    implementation(libs.multipaz.verifier)
+    implementation(libs.multipaz.verifier.server)
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
@@ -73,6 +73,6 @@ dependencies {
 // they appear on the classpath before any dependency JARs (including multipaz-verifier-server
 // which ships its own www/index.html at the same path).
 tasks.named<ProcessResources>("processResources") {
-    from(project(":multipaz-utopia:organizations:brewery:frontend").file("src/main/resources"))
+    from(project(":organizations:brewery:frontend").file("src/main/resources"))
 }
 
