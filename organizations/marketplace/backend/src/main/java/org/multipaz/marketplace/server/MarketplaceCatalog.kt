@@ -21,10 +21,13 @@ data class MarketplaceProduct(
 // what stops a crafted POST from buying the $42 bourbon for $0.01 or skipping
 // the age check by flipping a flag.
 //
-// This mirrors catalog.js (the storefront's source of truth) — the id, price,
-// and ageRestricted flag of every product MUST stay in sync with that file.
-// (A future REST API will make one of the two the single source; until then,
-// keep them aligned.)
+// This is one of three hand-synced copies of the catalog — the id, price, and
+// ageRestricted flag of every product MUST stay aligned across all three:
+//   - catalog.js                    (the storefront web pages)
+//   - mcp/src/catalog.ts            (the MCP storefront's Product list; ids "p<N>")
+//   - MarketplaceCatalog.kt (here)  (server-authoritative at checkout)
+// A future REST API will make one of them the single source; until then, keep
+// all three aligned.
 // ---------------------------------------------------------------------------
 
 private val MARKETPLACE_CATALOG: Map<Int, MarketplaceProduct> = listOf(

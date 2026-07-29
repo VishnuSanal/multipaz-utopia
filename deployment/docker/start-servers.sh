@@ -18,6 +18,11 @@ MODE="${MODE:-proxy}"
 # Additional params that can be passed to all servers
 EXTRA_PARAMS="${EXTRA_PARAMS:-}"
 
+# Merchant account the marketplace is paid into. Unset ⇒ the value in
+# services/marketplace.conf (the local demo account). Set this at deploy time (CI) to the
+# merchant account that exists in the target System of Record.
+PAYEE_ACCOUNT="${PAYEE_ACCOUNT:-}"
+
 if [ -z "$ADMIN_PASS" ] ; then
   if [ "$BASE_URL" = "http://localhost:8100" ] ; then
     ADMIN_PASS=multipaz
@@ -25,6 +30,11 @@ if [ -z "$ADMIN_PASS" ] ; then
   else
     echo "ADMIN_PASS must be set for non-test deployments"
   fi
+fi
+
+if [ -z "$PAYEE_ACCOUNT" ] && [ "$BASE_URL" != "http://localhost:8100" ] ; then
+  echo "PAYEE_ACCOUNT is not set — falling back to the demo account in marketplace.conf."
+  echo "  Payments will fail unless that account exists in the target System of Record."
 fi
 
 echo "=========================================="
@@ -90,9 +100,32 @@ fi
 # records server must be started first, as it processes enrollments
 service records registry org.multipaz.records.server.Main 8004 -param admin_password=$ADMIN_PASS
 service verifier upay org.multipaz.upay.server.Main 8009
-service verifier marketplace org.multipaz.marketplace.server.Main 8010
+service verifier marketplace org.multipaz.marketplace.server.Main 8010 ${PAYEE_ACCOUNT:+-param payee_account=$PAYEE_ACCOUNT}
 service openid4vci bank_of_utopia org.multipaz.utopia.organizations.bankofutopia.server.Main 8001 -param admin_password=$ADMIN_PASS
 service openid4vci dmv org.multipaz.utopia.organizations.dmv.server.Main 8002 -param admin_password=$ADMIN_PASS
+
+# MCP storefront (Node) — the agentic front-door onto the marketplace. Reaches the marketplace
+# backend in-container for the delegated verifier (server-to-server), and serves its pages on the
+# public origin so the wallet ceremony stays same-origin with the verifier under /marketplace/.
+if [ -d /app/mcp ] ; then
+  echo "Starting MCP storefront (marketplace-mcp) at port 8011..."
+  # Run from /app/mcp so Node resolves the CredentAgent packages out of the module's own
+  # node_modules rather than the image's WORKDIR.
+  (
+    cd /app/mcp && \
+    MCP_PORT=8011 \
+    MCP_BASE_URL="${BASE_URL}" \
+    MARKETPLACE_KOTLIN_BASE="http://localhost:8010" \
+    MARKETPLACE_VERIFIER_BASE="${BASE_URL}/marketplace" \
+    MCP_ORDERS_FILE="/app/data/mcp-orders.json" \
+    MCP_COMPLETED_ORDERS_FILE="/app/data/mcp-completed-orders.json" \
+    exec node dist/main.js
+  ) > /app/logs/marketplace-mcp.log 2>&1 &
+  pids="$pids $!"
+  echo "  PID: $!"
+else
+  echo "MCP storefront not bundled in this image — skipping."
+fi
 
 if [ "$INIT" = "0" ]
 then

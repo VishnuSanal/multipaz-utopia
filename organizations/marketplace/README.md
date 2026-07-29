@@ -15,8 +15,9 @@ Checkout is **conditional per item**:
 
 ```
 marketplace/
-├── backend/    # Ktor/Netty server — verifier + /checkout API
-└── frontend/   # Static HTML/CSS/JS storefront
+├── backend/    # Ktor/Netty server — verifier + /checkout API + cart checkout + page routes
+├── frontend/   # Static HTML/CSS/JS storefront (+ checkout.html/js for the MCP flow)
+└── mcp/        # Node/TS agentic MCP storefront (CredentAgent) — hands off to UPay/DPC
 ```
 
 ### `backend`
@@ -26,9 +27,10 @@ Gradle project: `:multipaz-utopia:organizations:marketplace:backend`
 | File | Purpose |
 |---|---|
 | `Main.kt` | Entry point — wires `DocumentTypeRepository`, `TrustManagerInterface`, and `MarketplaceVerifierAssistant` then starts the server |
-| `ApplicationExt.kt` | Mounts verifier endpoints + the `/checkout` route |
-| `MarketplaceHandler.kt` | `/checkout` request handler, the age-restricted and payment-only DCQL queries, `dcqlRequestsAge()`, and `MarketplaceVerifierAssistant` (conditional age-check + payment logic) |
-| `MarketplaceCatalog.kt` | Server-authoritative product catalog — `/checkout` looks up price and the age-restricted flag here by `productId` rather than trusting them from the request body |
+| `ApplicationExt.kt` | Mounts verifier endpoints + the checkout routes (`/checkout`, `/checkout/order`, `/checkout/complete`, `/checkout/order-status`) |
+| `MarketplaceHandler.kt` | Single-product `/checkout` and cart `/checkout/order` handlers, the age-restricted and payment-only DCQL queries, `dcqlRequestsAge()`, and `MarketplaceVerifierAssistant` (conditional age-check + payment logic) |
+| `MarketplaceCatalog.kt` | Server-authoritative product catalog — checkout looks up price and the age-restricted flag here by `productId` rather than trusting them from the request body |
+| `MarketplaceCheckoutStatus.kt` | The MCP checkout page redirect + `/checkout/complete` and `/checkout/order-status` (backs the storefront widget's completion poll) |
 
 **Server port:** `8010`  
 **URL prefix (behind nginx):** `/marketplace/`
@@ -46,8 +48,29 @@ Static resources served directly from the backend classpath (copied via `process
 | `product.html` | Product detail + checkout flow |
 | `marketplace.css` | Storefront styles |
 | `marketplace.js` | Product-detail rendering + checkout orchestration — calls `/checkout` with the `productId`, drives `multipazVerifyCredentials()` |
+| `checkout.html` / `checkout.js` | Cart-aware checkout page for the `mcp/` storefront — fetches the order from the MCP server, then posts the cart to `/checkout/order` and runs the same UPay/DPC `multipazVerifyCredentials()` flow |
 
 Product images are generated inline by `catalog.js` (`tile()`) as self-contained SVG data URIs — a category-tinted gradient with the product's emoji — so there are no binary image assets to ship.
+
+### `mcp`
+
+Standalone Node/TypeScript module (not part of the Gradle build). An agentic MCP
+storefront built on [`@openmobilehub/credentagent-storefront`](https://github.com/openmobilehub/credentagent):
+an AI agent (Claude, ChatGPT, Goose, Claude Code) browses the catalog and builds a
+cart, and **checkout hands off** to this backend's UPay + Digital Payment Credential
+ceremony. The `checkout` tool returns a link to `GET /checkout`; the page re-prices
+the cart server-side via `POST /checkout/order` and runs `multipazVerifyCredentials()`
+(payment DPC, plus an age credential when the cart holds an age-restricted item).
+
+Its catalog mirrors `MarketplaceCatalog.kt` / `catalog.js` (same ids, prices, and
+age-restricted flags). See [`mcp/README.md`](mcp/README.md).
+
+Run the MCP server (needs the records/enrollment + UPay + marketplace backend up):
+
+```bash
+cd mcp && npm install && MARKETPLACE_CHECKOUT_ORIGIN=http://localhost:8010 npm run dev
+# → http://localhost:3005/mcp  (add as a custom connector in Claude / ChatGPT / Goose)
+```
 
 ---
 

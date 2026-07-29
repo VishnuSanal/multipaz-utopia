@@ -82,11 +82,18 @@ tasks.register("buildWebFrontend") {
     dependsOn(":organizations:registry:frontend:jsBrowserDistribution")
 }
 
-tasks.register("buildAll") {
-    description = "Build all server JARs and web frontend"
+tasks.register("buildMcp") {
+    description = "Build the MCP storefront bundle the Docker image copies in"
     group = "deployment"
 
-    dependsOn("collectDependencies", "buildWebFrontend")
+    dependsOn(":organizations:marketplace:mcp:bundle")
+}
+
+tasks.register("buildAll") {
+    description = "Build all server JARs, the web frontend and the MCP storefront"
+    group = "deployment"
+
+    dependsOn("collectDependencies", "buildWebFrontend", "buildMcp")
 }
 
 // Helper function to get container tool (podman or docker)

@@ -36,7 +36,7 @@ class Main {
                     }
                 )
                 add(TrustManagerInterface::class, getIssuerTrustManager())
-                add(VerifierAssistant::class, MarketplaceVerifierAssistant())
+                add(VerifierAssistant::class, DelegatedVerifierAssistant())
             }) { environment ->
                 configureRouting(environment)
             }
