@@ -1,10 +1,15 @@
 // ---------------------------------------------------------------------------
 // Utopia Marketplace — product catalog (shared by index.html and product.html)
 //
-// Source of truth for the storefront. Each product carries an `ageRestricted`
-// flag: only age-restricted items (the Beer, Wine & Spirits aisle) trigger the
-// mDL / eID age-verification step at checkout — everything else needs payment
-// only. See marketplace.js (onBuyClick) and the backend MarketplaceHandler.
+// Source of truth for the storefront web pages. Each product carries an
+// `ageRestricted` flag: only age-restricted items (the Beer, Wine & Spirits
+// aisle) trigger the mDL / eID age-verification step at checkout — everything
+// else needs payment only. See marketplace.js (onBuyClick) and the backend
+// MarketplaceHandler.
+//
+// Two other hand-synced copies must stay aligned (same ids, prices, ageRestricted
+// flags): MarketplaceCatalog.kt (server-authoritative) and mcp/src/catalog.ts (the
+// MCP storefront). Keep all three in sync until a shared source replaces them.
 // ---------------------------------------------------------------------------
 
 // Aisles in display order.

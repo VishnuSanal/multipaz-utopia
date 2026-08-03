@@ -262,6 +262,12 @@ fun dcqlRequestsAge(dcql: JsonObject): Boolean {
     return credentials.any { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull in AGE_CREDENTIAL_IDS }
 }
 
+/** Returns true if [dcql] asks for the payment credential (a checkout step, not an age-only step). */
+fun dcqlRequestsPayment(dcql: JsonObject): Boolean {
+    val credentials = dcql["credentials"]?.jsonArray ?: return false
+    return credentials.any { it.jsonObject["id"]?.jsonPrimitive?.contentOrNull == "payment" }
+}
+
 // ---------------------------------------------------------------------------
 // VerifierAssistant — runs business logic after credential verification
 // ---------------------------------------------------------------------------
@@ -295,6 +301,12 @@ class MarketplaceVerifierAssistant : VerifierAssistant {
                     put("error", "Age verification failed: must be 18 or older to purchase this item")
                 }
             }
+        }
+
+        // Age-only presentation (progressive-disclosure step 1): no payment was requested, so there
+        // is nothing to charge — report success once age passed. The payment (DPC) is a later step.
+        if (!dcqlRequestsPayment(presentment.dcql)) {
+            return buildJsonObject { put("approved", true) }
         }
 
         // DPC verification — credential_sets requires a "payment" entry, so its absence is a

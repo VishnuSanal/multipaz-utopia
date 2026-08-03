@@ -3,9 +3,14 @@
 
 FROM eclipse-temurin:17-jre-jammy
 
-# Install nginx for reverse proxy
+# Install nginx for reverse proxy, and Node for the MCP storefront
 RUN apt-get update && apt-get install -y --no-install-recommends \
-   nginx less sqlite3 libsqlite3-dev curl && rm -rf /var/lib/apt/lists/*
+   nginx less sqlite3 libsqlite3-dev curl ca-certificates gnupg && \
+   mkdir -p /etc/apt/keyrings && \
+   curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
+   echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list && \
+   apt-get update && apt-get install -y --no-install-recommends nodejs && \
+   rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN groupadd -r multipaz && useradd -r -g multipaz multipaz
@@ -17,6 +22,9 @@ COPY deployment/build/docker-staging/libs/ /app/libs/
 
 # Copy thin server JARs
 COPY deployment/build/docker-staging/jars/ /app/jars/
+
+# Copy the MCP storefront bundle (compiled JS + production node_modules, built by Gradle)
+COPY organizations/marketplace/mcp/build/bundle/ /app/mcp/
 
 # Copy nginx configuration
 COPY deployment/docker/nginx.conf /etc/nginx/nginx.conf
