@@ -42,7 +42,7 @@ class Main {
                     }
                 )
                 add(TrustManagerInterface::class, getIssuerTrustManager())
-                add(VerifierAssistant::class, TransactionProcessor)
+                add(VerifierAssistant::class, UPayVerifierAssistant)
             }) { environment ->
                 routing {
                     configureVerifier(environment)

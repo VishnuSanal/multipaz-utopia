@@ -222,7 +222,8 @@ select.invalid:focus {
     margin: 0;
 }
 
-#pay-btn {
+#pay-btn,
+#lookup-btn {
     width: 100%;
     margin-top: 8px;
     padding: 13px;
@@ -236,13 +237,169 @@ select.invalid:focus {
     transition: background-color 0.15s ease;
 }
 
-#pay-btn:hover {
+#pay-btn:hover,
+#lookup-btn:hover {
     background-color: #2C2118;
 }
 
-#pay-btn:disabled {
+#pay-btn:disabled,
+#lookup-btn:disabled {
     opacity: 0.6;
     cursor: default;
+}
+
+/* Secondary action beneath a primary button. Outlined rather than filled, so it reads as a real
+   way out of this page without competing with the action the page is actually for. */
+.secondary-action {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    color: var(--ink-soft);
+    background-color: transparent;
+    border: 1px solid var(--input-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.secondary-action:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+/* ---- Account dashboard ---- */
+
+.intro-text {
+    margin: 0 0 20px;
+    font-size: 14px;
+    color: var(--ink-soft);
+}
+
+.balance-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.balance-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+}
+
+.balance-amount {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.balance-amount.negative {
+    color: var(--danger);
+}
+
+.balance-meta {
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.transactions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0 8px;
+}
+
+.transactions-header .label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--label);
+}
+
+#refresh-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    background-color: transparent;
+    border: 1px solid var(--input-border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+#refresh-btn:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+}
+
+#refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.transaction {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.transaction:last-child {
+    border-bottom: none;
+}
+
+.transaction-details {
+    min-width: 0;
+}
+
+.transaction-name {
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.transaction-note {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+}
+
+.transaction-amount {
+    flex: none;
+    font-size: 15px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+
+.transaction-amount.outgoing {
+    color: var(--danger);
+}
+
+.transaction-amount.incoming {
+    color: var(--success-ink);
+}
+
+.empty-note {
+    margin: 16px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+}
+
+.empty-note[hidden] {
+    display: none;
 }
 
 /* ---- Footer ---- */

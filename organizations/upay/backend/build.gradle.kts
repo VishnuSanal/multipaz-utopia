@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.io.bytestring)
+    implementation(libs.ktor.client.core)
     implementation(libs.ktor.server.netty)
     implementation(libs.logback.classic)
 

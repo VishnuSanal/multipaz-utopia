@@ -99,7 +99,9 @@ fi
 
 # records server must be started first, as it processes enrollments
 service records registry org.multipaz.records.server.Main 8004 -param admin_password=$ADMIN_PASS
-service verifier upay org.multipaz.upay.server.Main 8009
+# registry_url keeps UPay's account-statement reads inside the deployment rather than routing
+# them out through BASE_URL and back.
+service verifier upay org.multipaz.upay.server.Main 8009 -param registry_url=http://localhost:8004
 service verifier marketplace org.multipaz.marketplace.server.Main 8010 ${PAYEE_ACCOUNT:+-param payee_account=$PAYEE_ACCOUNT}
 service openid4vci bank_of_utopia org.multipaz.utopia.organizations.bankofutopia.server.Main 8001 -param admin_password=$ADMIN_PASS
 service openid4vci dmv org.multipaz.utopia.organizations.dmv.server.Main 8002 -param admin_password=$ADMIN_PASS

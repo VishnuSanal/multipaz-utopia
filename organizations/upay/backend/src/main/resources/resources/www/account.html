@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="referrer" content="unsafe-url">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>OWF Multipaz UPay account</title>
+    <script src="verify_credentials.js"></script>
+    <script src="account.js"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<main class="page">
+    <div id="banner" class="banner" hidden></div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                     stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2 4 5v6c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V5l-8-3Z"/>
+                    <path d="M12 8v8M9.5 9.5h3.2a1.8 1.8 0 0 1 0 3.6H10m-.5 0h3.2a1.8 1.8 0 0 1 0 3.6"/>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>UPay Account</h1>
+                <p class="subtitle">Balance &amp; Transactions</p>
+            </div>
+        </div>
+
+        <!-- No account number field: the account is named by the signed credential. -->
+        <div id="intro">
+            <p class="intro-text">
+                Present your payment card to view your balance and recent transactions.
+                UPay reads the account number from the card itself, so no one can look up
+                an account they cannot present.
+            </p>
+            <button type="button" id="lookup-btn" onclick="viewAccount()">View My Account</button>
+        </div>
+
+        <!-- Populated by account.js after a successful presentment. -->
+        <div id="statement" hidden>
+            <div class="balance-block">
+                <span class="balance-label">Available balance</span>
+                <span id="balance" class="balance-amount"></span>
+                <span id="account-line" class="balance-meta"></span>
+            </div>
+
+            <div class="transactions-header">
+                <span class="label">Transactions</span>
+                <button type="button" id="refresh-btn" onclick="viewAccount()">Refresh</button>
+            </div>
+            <div id="transactions"></div>
+            <p id="no-transactions" class="empty-note" hidden>No transactions yet.</p>
+        </div>
+
+        <p class="card-footer">
+            <a href="index.html">Make a payment</a>
+            &nbsp;&middot;&nbsp;
+            &copy; 2026 Utopia Universe UPay Service.
+        </p>
+    </div>
+</main>
+</body>
+</html>
