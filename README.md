@@ -238,6 +238,7 @@ organizations/<org>/backend    # Ktor/Netty server
 organizations/<org>/frontend   # Storefront or console assets, served off the backend classpath
 organizations/marketplace/mcp  # Node/TypeScript MCP storefront, npm build driven from Gradle
 shared/issuer                  # Issuer logic shared by DMV and Bank of Utopia
+shared/theme                   # Design tokens, palettes, and the two shadowing stylesheets
 deployment/                    # Container image: nginx, per-service config, startup script
 ```
 
@@ -248,6 +249,7 @@ deployment/                    # Container image: nginx, per-service config, sta
 | [organizations/marketplace/README.md](organizations/marketplace/README.md)             | Marketplace checkout, age verification, payment transaction                             |
 | [organizations/marketplace/mcp/README.md](organizations/marketplace/mcp/README.md)     | Agentic MCP storefront                                                                  |
 | [organizations/registry/frontend/README.md](organizations/registry/frontend/README.md) | Registry front-end development                                                          |
+| [shared/theme/README.md](shared/theme/README.md)                                       | Palettes, design tokens, and how one theme reaches every service                        |
 | [deployment/README.md](deployment/README.md)                                           | Building, running, and deploying the container bundle                                   |
 | [deployment/docker/init/UPDATING.md](deployment/docker/init/UPDATING.md)               | Updating Registry seed data                                                             |
 | [CODING-STYLE.md](CODING-STYLE.md)                                                     | Coding style                                                                            |

@@ -59,3 +59,9 @@ dependencies {
 
 ktor {
 }
+
+// to inject utopia shared stylesheets and html files (see shared/theme/README)
+tasks.named<ProcessResources>("processResources") {
+    from(rootProject.file("shared/theme/common"))
+    from(rootProject.file("shared/theme/records"))
+}

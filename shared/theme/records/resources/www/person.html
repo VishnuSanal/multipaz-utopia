@@ -1,0 +1,50 @@
+<!-- Shadows the identically-named page in multipaz-records.jar. VERBATIM apart
+     from the utopia-chrome.js tag below, which mounts the shared Utopia
+     header and footer. Re-vendor this file if the jar's copy changes. -->
+
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="utf-8">
+    <title>Individual's records</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="style.css"/>
+    <script src="utopia-chrome.js"></script>
+</head>
+<body class="wide">
+<div id="main">
+    <div id="login"></div>
+    <h1 class="state_name">State</h1>
+    <h2>Individual's records</h2>
+    <p class="purpose">
+        You are playing the role of <i class="official_name">Admin</i> of
+        <i class="state_name">State</i>. This page contains all the records
+        for the given individual that <i class="state_name">State</i>
+        maintains. The first section <i>Core personal information</i> contains data that is
+        applicable to everyone. Additional sections are optional.
+        <span class="logged_in">You are logged in and thus have power to alter
+    the information, be sure to save it using button at the bottom of this
+    page.</span>
+        <span class="logged_out">As you are not logged in, you can play with the
+    data, but it won't be saved. Use "Login" button at the top of the page to log in.</span>
+    </p>
+    <div id="core"></div>
+    <h2>Records</h2>
+    <div>
+        <label for="recordType">New record type:</label>
+        <select id="recordType">
+            <option value="">Not selected</option>
+        </select>
+        <button id="addRecord">Add</button>
+    </div>
+    <div id="records"></div>
+    <div class="actions logged_in">
+        <button id="save">Save</button>
+        <button id="delete">Delete</button>
+    </div>
+</div>
+</body>
+<script src="person.js"></script>
+<script src="login.js"></script>
+<script src="metadata.js"></script>
+</html>
