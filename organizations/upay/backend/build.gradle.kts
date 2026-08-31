@@ -50,3 +50,8 @@ ktor {
 // Generates www/accounts.json (the payee dropdown) from the deployment records
 // seed and wires it into processResources. See the script for details.
 apply(from = "gradle/generate-accounts.gradle.kts")
+
+// to inject the utopia stylesheets and chrome script (see shared/theme/README)
+tasks.named<ProcessResources>("processResources") {
+    from(rootProject.file("shared/theme/common"))
+}
