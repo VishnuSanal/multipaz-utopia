@@ -218,5 +218,24 @@
                 }
             }
         }
+    },
+    {
+        "core": {
+            "given_name": "Utopia Transit",
+            "family_name": "Kiosk Terminal",
+            "utopia_id_number": "9000-0003"
+        },
+        "records": {
+            "payment": {
+                "merchant": {
+                    "instance_title": "Merchant",
+                    "issuer_name": "Utopia Transit",
+                    "holder_name": "Utopia Transit Terminal",
+                    "issue_date": "2026-01-01",
+                    "expiry_date": "2031-01-01",
+                    "account_number": "30000001"
+                }
+            }
+        }
     }
 ]
