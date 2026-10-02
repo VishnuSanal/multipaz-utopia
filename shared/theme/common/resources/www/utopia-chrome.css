@@ -91,7 +91,9 @@
     display: flex;
     gap: 2px;
     margin-left: auto;
-    overflow-x: auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    overflow: visible;
     scrollbar-width: none;
 }
 
@@ -122,6 +124,56 @@
 .utopia-nav a[aria-current="page"] {
     background: var(--utopia-accent);
     color: var(--utopia-bg);
+}
+
+.utopia-nav-marketplace {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0;
+}
+
+.utopia-nav-marketplace > a { padding-right: 7px; }
+
+.utopia-nav-menu-trigger {
+    width: 28px;
+    height: 34px;
+    padding: 0 7px 3px 0;
+    cursor: pointer;
+    border: 0;
+    border-radius: var(--utopia-radius-pill);
+    background: transparent;
+    color: var(--utopia-ink);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.utopia-nav-menu-trigger:hover,
+.utopia-nav-menu-trigger:focus-visible {
+    background: color-mix(in srgb, var(--utopia-ink) 8%, transparent);
+}
+
+.utopia-nav-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    display: none;
+    min-width: 132px;
+    padding: 6px;
+    background: var(--utopia-surface-raised);
+    border: 1px solid var(--utopia-border);
+    border-radius: var(--utopia-radius-control);
+    box-shadow: var(--utopia-shadow-lg);
+    z-index: 1;
+}
+
+.utopia-nav-marketplace.is-open .utopia-nav-menu { display: block; }
+
+.utopia-nav-menu a {
+    display: block;
+    padding: 8px 10px;
+    border-radius: calc(var(--utopia-radius-control) - 2px);
 }
 
 .utopia-wallet {

@@ -22,11 +22,11 @@ async function withServer(fn: (port: number) => Promise<void>): Promise<void> {
   }
 }
 
-async function statelessToolCall(port: number, id: number, name: string, args: Record<string, unknown>) {
+async function statelessMcpCall(port: number, id: number, method: string, params: Record<string, unknown>) {
   const res = await fetch(`http://127.0.0.1:${port}/mcp`, {
     method: "POST",
     headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
-    body: JSON.stringify({ jsonrpc: "2.0", id, method: "tools/call", params: { name, arguments: args } }),
+    body: JSON.stringify({ jsonrpc: "2.0", id, method, params }),
   });
   assert.equal(res.status, 200);
   const text = await res.text();
@@ -37,7 +37,13 @@ async function statelessToolCall(port: number, id: number, name: string, args: R
     content?: { text?: string }[];
     structuredContent?: unknown;
   } | undefined;
-  assert.ok(result?.content?.[0]?.text, `${name} should return a text result`);
+  assert.ok(result, `${method} should return a result`);
+  return result;
+}
+
+async function statelessToolCall(port: number, id: number, name: string, args: Record<string, unknown>) {
+  const result = await statelessMcpCall(port, id, "tools/call", { name, arguments: args });
+  assert.ok(result.content?.[0]?.text, `${name} should return a text result`);
   if (result.structuredContent && typeof result.structuredContent === "object") {
     return result.structuredContent as { cartId?: string; cart?: { lines?: { id: string; quantity: number }[] } };
   }
@@ -76,6 +82,23 @@ test("stateless clients receive isolated signed carts", async () => {
     const secondCart = await statelessToolCall(port, 5, "get-cart", { cartId: second.cartId });
     assert.equal(firstCart.cart?.lines?.[0]?.id, "p1");
     assert.equal(secondCart.cart?.lines?.length, 0, "a second cart must not see the first cart's items");
+  });
+});
+
+test("the live-demo product picker is discoverable as an MCP App", async () => {
+  await withServer(async (port) => {
+    const list = await statelessMcpCall(port, 1, "tools/list", {}) as {
+      tools?: { name: string; _meta?: { ui?: { resourceUri?: string } } }[];
+    };
+    const picker = list.tools?.find((tool) => tool.name === "browse-products");
+    const uri = picker?._meta?.ui?.resourceUri;
+    assert.match(uri ?? "", /^ui:\/\/product-picker\/mcp-app-/);
+
+    const resource = await statelessMcpCall(port, 2, "resources/read", { uri }) as {
+      contents?: { mimeType?: string; text?: string }[];
+    };
+    assert.match(resource.contents?.[0]?.mimeType ?? "", /text\/html/);
+    assert.match(resource.contents?.[0]?.text ?? "", /ui\/initialize/);
   });
 });
 

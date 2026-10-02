@@ -70,6 +70,123 @@ h1, h2, h3 {
     color: color-mix(in srgb, var(--utopia-ink) 50%, transparent);
 }
 
+/* -- MCP information ----------------------------------------------------- */
+
+.mk-mcp-note {
+    max-width: 42rem;
+    margin-top: 34px;
+    padding: 24px;
+    background: var(--utopia-surface-raised);
+    border: 1px solid var(--utopia-border);
+    border-left: 4px solid var(--utopia-accent);
+    border-radius: var(--utopia-radius);
+}
+
+.mk-mcp-note h2 { font-size: 22px; }
+.mk-mcp-note p { margin: 0 0 10px; color: var(--utopia-ink-soft); }
+.mk-mcp-note code {
+    display: inline-block;
+    padding: 7px 10px;
+    background: var(--utopia-accent-soft);
+    border-radius: var(--utopia-radius-sm);
+    color: var(--utopia-emphasis);
+    font-family: var(--utopia-font-mono);
+    font-size: 14px;
+}
+
+.mk-mcp-note .mk-finePrint { margin: 16px 0 0; }
+.mk-mcp-note .mk-finePrint code {
+    display: inline;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font-size: inherit;
+}
+
+.mk-mcp-section {
+    max-width: 42rem;
+    margin-top: 42px;
+}
+
+.mk-mcp-section h2 { font-size: 27px; }
+.mk-mcp-section > p:not(.mk-eyebrow) {
+    margin: 0;
+    color: var(--utopia-ink-soft);
+}
+
+.mk-mcp-steps {
+    display: grid;
+    gap: 12px;
+    margin: 20px 0 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: mcp-step;
+}
+
+.mk-mcp-steps li {
+    position: relative;
+    min-height: 48px;
+    padding: 12px 14px 12px 52px;
+    background: var(--utopia-surface-raised);
+    border: 1px solid var(--utopia-border);
+    border-radius: var(--utopia-radius-sm);
+    color: var(--utopia-ink-soft);
+    counter-increment: mcp-step;
+}
+
+.mk-mcp-steps li::before {
+    content: counter(mcp-step);
+    position: absolute;
+    top: 13px;
+    left: 14px;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--utopia-accent-soft);
+    color: var(--utopia-emphasis);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.mk-mcp-steps strong { color: var(--utopia-ink); }
+
+.mk-mcp-section--quiet {
+    padding-top: 28px;
+    border-top: 1px solid var(--utopia-border);
+}
+
+.mk-mcp-live {
+    max-width: 54rem;
+    margin-top: 46px;
+    padding: 30px;
+    background: var(--utopia-tint-1);
+    border-radius: var(--utopia-radius);
+}
+
+.mk-mcp-live h2 { font-size: 29px; }
+.mk-mcp-live > p:not(.mk-eyebrow):not(.mk-mcp-live-status) { max-width: 42rem; color: var(--utopia-ink-soft); }
+.mk-mcp-live-start {
+    margin-top: 8px;
+    padding: 12px 20px;
+    border: 0;
+    border-radius: var(--utopia-radius-pill);
+    background: var(--utopia-accent);
+    color: var(--utopia-bg);
+    font: 600 14px var(--utopia-font-sans);
+    cursor: pointer;
+}
+.mk-mcp-live-start:hover { background: var(--utopia-accent-hover); }
+.mk-mcp-live-start:disabled { cursor: wait; opacity: .65; }
+.mk-mcp-live-status { min-height: 1.5em; margin: 16px 0 0; color: var(--utopia-ink-soft); }
+.mk-mcp-live-status.is-error { color: var(--utopia-danger-strong); }
+.mk-mcp-picker { margin-top: 20px; overflow: hidden; background: var(--utopia-surface-raised); border: 1px solid var(--utopia-border); border-radius: var(--utopia-radius-sm); }
+.mk-mcp-frame { display: block; width: 100%; min-height: 520px; border: 0; background: var(--utopia-surface-raised); }
+.mk-mcp-handoff { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-top: 20px; padding: 18px; background: var(--utopia-surface-raised); border: 1px solid var(--utopia-border); border-radius: var(--utopia-radius-sm); }
+.mk-mcp-handoff strong { font-family: var(--utopia-font-display); font-size: 18px; }
+.mk-mcp-handoff p { flex-basis: 100%; margin: -10px 0 0; color: var(--utopia-ink-soft); }
+
 /* -- Aisles --------------------------------------------------------------- */
 
 .mk-aisle { margin-top: 44px; }
@@ -436,4 +553,3 @@ h1, h2, h3 {
     color: var(--utopia-accent-2) !important;
     font-weight: 600;
 }
-

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marketplace MCP — Utopia</title>
+    <link rel="stylesheet" href="marketplace.css">
+    <script>window.UTOPIA_SERVICE = "marketplace";</script>
+    <script src="utopia-chrome.js"></script>
+</head>
+<body>
+<main class="mk-page mk-page--narrow">
+    <a class="mk-back" href="index.html">← Marketplace</a>
+    <p class="mk-eyebrow">Marketplace MCP</p>
+    <h1 class="mk-hero">Shop with an assistant.</h1>
+    <p class="mk-lead">An MCP-compatible assistant can browse the Utopia Marketplace, build a cart,
+        and create a checkout link. You remain in control: you approve the credential and payment
+        flow yourself.</p>
+
+    <section class="mk-mcp-note" aria-labelledby="mcp-endpoint-title">
+        <h2 id="mcp-endpoint-title">Connect your MCP client</h2>
+        <p>Use this endpoint with an MCP-compatible client when connected through the Utopia gateway:</p>
+        <code>/mcp</code>
+        <p class="mk-finePrint">When running the MCP server directly, use
+            <code>http://localhost:3005/mcp</code>.</p>
+    </section>
+
+    <section class="mk-mcp-section" aria-labelledby="mcp-flow-title">
+        <p class="mk-eyebrow">How it works</p>
+        <h2 id="mcp-flow-title">Your assistant shops. You approve.</h2>
+        <ol class="mk-mcp-steps">
+            <li><strong>Browse and prepare.</strong> Your assistant uses MCP tools to browse the
+                catalog and build a cart.</li>
+            <li><strong>Receive a checkout link.</strong> The assistant sends the order to your
+                browser or phone; it cannot complete the purchase itself.</li>
+            <li><strong>Present only what is needed.</strong> Age-restricted items request proof
+                that you are over 18. Every order requests a payment credential.</li>
+            <li><strong>Approve the payment.</strong> The Marketplace verifies the credentials and
+                UPay settles the transaction after you approve it when the Multipaz backend is
+                configured.</li>
+        </ol>
+    </section>
+
+    <section class="mk-mcp-section mk-mcp-section--quiet" aria-labelledby="mcp-safety-title">
+        <p class="mk-eyebrow">Why it is safe to hand off</p>
+        <h2 id="mcp-safety-title">The assistant never gets the final say.</h2>
+        <p>The checkout gate derives the amount from the Marketplace catalog, checks it against what
+            your wallet signed, and re-checks the age policy over the disclosed claims. Verification
+            happens before settlement, so an order the policy refuses is never charged.</p>
+    </section>
+
+    <section class="mk-mcp-live" aria-labelledby="mcp-live-title">
+        <p class="mk-eyebrow">Try it live</p>
+        <h2 id="mcp-live-title">Take the Marketplace MCP for a spin.</h2>
+        <p>Start with Old Oak Bourbon in your cart, then browse the full catalog in the real MCP
+            product picker. Checkout always stays yours to approve.</p>
+        <button class="mk-mcp-live-start" type="button" id="mcp-live-start">Try the checkout flow</button>
+        <p class="mk-mcp-live-status" id="mcp-live-status" role="status" aria-live="polite"></p>
+        <div class="mk-mcp-picker" id="mcp-live-picker" hidden></div>
+        <div class="mk-mcp-handoff" id="mcp-live-handoff" hidden>
+            <strong id="mcp-live-handoff-title">Your checkout is ready.</strong>
+            <p id="mcp-live-handoff-copy">Open checkout to approve it with your wallet.</p>
+            <a class="mk-banner-btn" id="mcp-live-checkout" target="_blank" rel="noopener">Continue to checkout ↗</a>
+        </div>
+    </section>
+
+    <p class="mk-finePrint">Utopia is a fictional demo environment. Local development uses a
+        stand-in verifier; a configured Multipaz backend verifies credentials and settles through
+        UPay.</p>
+</main>
+<script>
+/* A deliberately small browser MCP host. It speaks to the same-origin storefront, renders its
+   MCP App in a sandbox, and never attempts to approve checkout on the visitor's behalf. */
+(function () {
+    var endpoint = "/mcp";
+    var start = document.getElementById("mcp-live-start");
+    var status = document.getElementById("mcp-live-status");
+    var picker = document.getElementById("mcp-live-picker");
+    var handoff = document.getElementById("mcp-live-handoff");
+    var checkout = document.getElementById("mcp-live-checkout");
+    var handoffTitle = document.getElementById("mcp-live-handoff-title");
+    var handoffCopy = document.getElementById("mcp-live-handoff-copy");
+    var state = { cartId: null, frame: null, orderId: null, poll: null };
+    var callId = 0;
+    var cartTools = ["browse-products", "add-to-cart", "set-quantity", "remove-from-cart", "get-cart", "checkout"];
+
+    function say(message, bad) {
+        status.textContent = message;
+        status.classList.toggle("is-error", !!bad);
+    }
+
+    function resultPayload(result) {
+        if (result && result.structuredContent) return result.structuredContent;
+        var text = result && result.content && result.content[0] && result.content[0].text;
+        try { return JSON.parse(text); } catch (_error) { return {}; }
+    }
+
+    function updateCart(result) {
+        var body = resultPayload(result);
+        if (body && typeof body.cartId === "string") state.cartId = body.cartId;
+        return body;
+    }
+
+    async function rpc(method, params) {
+        var response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "content-type": "application/json", "accept": "application/json, text/event-stream" },
+            body: JSON.stringify({ jsonrpc: "2.0", id: ++callId, method: method, params: params || {} })
+        });
+        if (!response.ok) throw new Error("The Marketplace MCP is unavailable (" + response.status + ").");
+        var text = await response.text();
+        var messages = text.trim().charAt(0) === "{"
+            ? [JSON.parse(text)]
+            : text.split("\n").filter(function (line) { return line.indexOf("data: ") === 0; })
+                .map(function (line) { return JSON.parse(line.slice(6)); });
+        var message = messages.filter(function (item) { return item.result || item.error; }).pop();
+        if (!message) throw new Error("The Marketplace MCP returned an unreadable response.");
+        if (message.error) throw new Error(message.error.message || "MCP request failed.");
+        return message.result;
+    }
+
+    async function tool(name, args) {
+        args = Object.assign({}, args || {});
+        if (state.cartId && cartTools.indexOf(name) !== -1) args.cartId = state.cartId;
+        var result = await rpc("tools/call", { name: name, arguments: args });
+        updateCart(result);
+        if (name === "checkout") showCheckout(result);
+        return result;
+    }
+
+    function addWidgetCsp(html, csp) {
+        csp = csp || {};
+        var safe = function (list) {
+            return (Array.isArray(list) ? list : []).filter(function (value) {
+                return value === "data:" || /^https:\/\/[a-z0-9.-]+(?::\d+)?$/i.test(value);
+            }).join(" ") || "'none'";
+        };
+        var policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src " +
+            safe(csp.resourceDomains) + "; font-src " + safe(csp.resourceDomains) + "; connect-src " +
+            safe(csp.connectDomains) + "; form-action 'none'; base-uri 'none'";
+        var meta = '<meta http-equiv="Content-Security-Policy" content="' + policy + '">';
+        return /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, function (head) { return head + meta; }) : meta + html;
+    }
+
+    function showCheckout(result) {
+        var body = resultPayload(result);
+        if (!body || typeof body.checkoutUrl !== "string" || typeof body.orderId !== "string") return;
+        var url;
+        try {
+            url = new URL(body.checkoutUrl);
+            if (url.origin !== location.origin || url.pathname !== "/checkout") return;
+        } catch (_error) { return; }
+        state.orderId = body.orderId;
+        checkout.href = url.href;
+        handoff.hidden = false;
+        say("Checkout is ready. Open it in a new tab, then approve the age and payment steps.");
+        watchOrder(url.origin, state.orderId);
+    }
+
+    function watchOrder(origin, orderId) {
+        if (state.poll) clearInterval(state.poll);
+        function check() {
+            fetch(origin + "/checkout/order-status?orderId=" + encodeURIComponent(orderId))
+                .then(function (response) { return response.ok ? response.json() : null; })
+                .then(function (body) {
+                    if (!body || !body.completed || state.orderId !== orderId) return;
+                    clearInterval(state.poll);
+                    state.poll = null;
+                    handoffTitle.textContent = "Order complete.";
+                    handoffCopy.textContent = "The Marketplace recorded your approved order.";
+                    checkout.hidden = true;
+                    say("Your order has been completed.");
+                })
+                .catch(function () { /* a temporary poll failure should not interrupt checkout */ });
+        }
+        check();
+        state.poll = setInterval(check, 4000);
+        document.addEventListener("visibilitychange", function () {
+            if (document.visibilityState === "visible" && state.orderId === orderId) check();
+        }, { once: true });
+    }
+
+    function mountWidget(toolDefinition, resource, toolResult) {
+        var iframe = document.createElement("iframe");
+        iframe.className = "mk-mcp-frame";
+        iframe.title = "Utopia Marketplace product picker";
+        iframe.setAttribute("sandbox", "allow-scripts allow-forms");
+        iframe.srcdoc = addWidgetCsp(resource.text, resource._meta && resource._meta.ui && resource._meta.ui.csp);
+        picker.replaceChildren(iframe);
+        picker.hidden = false;
+        state.frame = iframe;
+
+        function post(message) { if (iframe.contentWindow) iframe.contentWindow.postMessage(message, "*"); }
+        function reply(id, result) { post({ jsonrpc: "2.0", id: id, result: result || {} }); }
+        function fail(id, message) { post({ jsonrpc: "2.0", id: id, error: { code: -32603, message: message } }); }
+        window.addEventListener("message", function onMessage(event) {
+            if (event.source !== iframe.contentWindow) return;
+            var message = event.data || {}, params = message.params || {};
+            if (message.jsonrpc !== "2.0" || !message.method) return;
+            if (message.method === "ui/initialize") {
+                reply(message.id, {
+                    protocolVersion: params.protocolVersion || "2026-01-26",
+                    hostInfo: { name: "Utopia Marketplace", version: "1.0" },
+                    hostCapabilities: { openLinks: {}, serverTools: {}, updateModelContext: {} },
+                    hostContext: { theme: "light", displayMode: "inline", availableDisplayModes: ["inline"], platform: "web", toolInfo: { tool: toolDefinition } }
+                });
+            } else if (message.method === "tools/call") {
+                tool(params.name, params.arguments).then(function (result) {
+                    reply(message.id, result);
+                    // The response completes the App's request; the notification also replaces
+                    // its visible cart snapshot, including the new total after an edit.
+                    post({ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: result });
+                }, function (error) { fail(message.id, error.message); });
+            } else if (message.method === "ui/open-link") {
+                reply(message.id, {});
+                showCheckout({ content: [{ type: "text", text: JSON.stringify({ checkoutUrl: params.url, orderId: state.orderId }) }] });
+            } else if (message.method === "ui/request-display-mode") {
+                reply(message.id, { mode: "inline" });
+            } else if (message.method === "ui/notifications/initialized") {
+                post({ jsonrpc: "2.0", method: "ui/notifications/tool-input", params: { arguments: state.seedArgs || { cartId: state.cartId } } });
+                post({ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: toolResult });
+            } else if (message.method === "ui/notifications/size-changed") {
+                iframe.style.height = Math.min(Math.max(Number(params.height) || 520, 360), 1100) + "px";
+            }
+        });
+    }
+
+    start.addEventListener("click", async function () {
+        if (location.hostname === "localhost" && location.port === "8010") {
+            say("Try it live is available through the Utopia gateway, where /mcp and checkout share one origin.", true);
+            return;
+        }
+        start.disabled = true;
+        handoff.hidden = true;
+        checkout.hidden = false;
+        say("Opening the Marketplace MCP…");
+        try {
+            var list = await rpc("tools/list", {});
+            var pickerTool = (list.tools || []).filter(function (item) { return item.name === "browse-products"; })[0];
+            var meta = pickerTool && pickerTool._meta || {};
+            var uri = meta.ui && meta.ui.resourceUri || meta["ui/resourceUri"];
+            if (!pickerTool || !uri) throw new Error("The Marketplace MCP did not provide its product picker.");
+            var browse = await tool("browse-products", {});
+            state.seedArgs = { cartId: state.cartId, items: [{ productId: "p16", quantity: 1 }] };
+            var seeded = await tool("add-to-cart", state.seedArgs);
+            var resourceResult = await rpc("resources/read", { uri: uri });
+            var resource = resourceResult.contents && resourceResult.contents[0];
+            if (!resource || !resource.text) throw new Error("The Marketplace product picker could not be loaded.");
+            mountWidget(pickerTool, resource, seeded || browse);
+            say("Old Oak Bourbon is in your cart. Browse products or continue to checkout.");
+        } catch (error) {
+            say((error && error.message) || "The Marketplace MCP could not be started.", true);
+        } finally {
+            // A second host would receive the same iframe messages and corrupt the active cart.
+            // Keep the one live picker for this page load; failed starts remain retryable.
+            if (!state.frame) start.disabled = false;
+        }
+    });
+})();
+</script>
+</body>
+</html>

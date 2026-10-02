@@ -64,6 +64,10 @@
         return svc.path;
     }
 
+    function childHref(base, path) {
+        return base.charAt(base.length - 1) === "/" ? base + path : base + "/" + path;
+    }
+
     function currentKey() {
         if (window.UTOPIA_SERVICE) return window.UTOPIA_SERVICE;
         var match = null;
@@ -107,7 +111,7 @@
         var home = el("a", "utopia-brand");
         home.href = window.UTOPIA_HOME || "/";
         home.appendChild(el("span", "utopia-brand-mark", "U"));
-        home.appendChild(el("span", "utopia-brand-name", "Utopia"));
+        home.appendChild(el("span", "utopia-brand-name", "Multipaz Utopia"));
         inner.appendChild(home);
 
         inner.appendChild(el("span", "utopia-demo-pill", "Fictional state \u00B7 demo only"));
@@ -116,6 +120,41 @@
         var nav = el("nav", "utopia-nav");
         nav.setAttribute("aria-label", "Utopia services");
         SERVICES.forEach(function (svc) {
+            if (svc.key === "marketplace") {
+                var group = el("div", "utopia-nav-marketplace");
+                var marketplace = el("a", null, svc.label);
+                var trigger = el("button", "utopia-nav-menu-trigger", "⌄");
+                var menu = el("div", "utopia-nav-menu");
+                var mcp = el("a", null, "MCP");
+                var open = false;
+
+                marketplace.href = hrefFor(svc);
+                if (svc.key === active) marketplace.setAttribute("aria-current", "page");
+                trigger.type = "button";
+                trigger.setAttribute("aria-label", "Open Marketplace menu");
+                trigger.setAttribute("aria-haspopup", "true");
+                trigger.setAttribute("aria-expanded", "false");
+                mcp.href = childHref(hrefFor(svc), "mcp.html");
+                menu.appendChild(mcp);
+                group.appendChild(marketplace);
+                group.appendChild(trigger);
+                group.appendChild(menu);
+
+                function setOpen(next) {
+                    open = next;
+                    group.classList.toggle("is-open", open);
+                    trigger.setAttribute("aria-expanded", String(open));
+                }
+                trigger.addEventListener("click", function (event) {
+                    event.stopPropagation();
+                    setOpen(!open);
+                });
+                document.addEventListener("click", function (event) {
+                    if (!group.contains(event.target)) setOpen(false);
+                });
+                nav.appendChild(group);
+                return;
+            }
             var a = el("a", null, svc.label);
             a.href = hrefFor(svc);
             if (svc.key === active) a.setAttribute("aria-current", "page");
