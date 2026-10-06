@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Marketplace MCP — Utopia</title>
+    <link rel="stylesheet" href="marketplace.css">
+    <script>window.UTOPIA_SERVICE = "marketplace";</script>
+    <script src="utopia-chrome.js"></script>
+</head>
+<body>
+<main class="mk-page mk-page--narrow">
+    <a class="mk-back" href="index.html">← Marketplace</a>
+    <p class="mk-eyebrow">Try it live</p>
+    <h1 class="mk-hero">Take the Marketplace MCP for a spin.</h1>
+    <p class="mk-lead">Start with our live catalog below, then browse the full catalog in an MCP
+        product picker. Checkout always stays yours to approve.</p>
+
+    <button class="mk-mcp-try" type="button" data-scroll-to="mcp-showcase">Try the checkout flow</button>
+
+    <section id="mcp-showcase" class="mk-mcp-showcase" aria-labelledby="mcp-showcase-title">
+        <div class="mk-mcp-showcase-head">
+            <div>
+                <p class="mk-eyebrow">Live MCP storefront</p>
+                <h2 id="mcp-showcase-title">Build a cart. Open a real checkout.</h2>
+            </div>
+            <p id="mcp-cart-summary" class="mk-mcp-cart-summary" aria-live="polite">Your cart is empty</p>
+        </div>
+        <p class="mk-mcp-showcase-copy">These products come from the Marketplace catalog. “Checkout” creates
+            an actual MCP storefront order and opens its credential and payment approval flow.</p>
+        <p id="mcp-demo-status" class="mk-status" aria-live="polite">Loading live catalog…</p>
+        <div id="mcp-product-picker" class="mk-mcp-picker" aria-label="Marketplace product picker"></div>
+        <div class="mk-mcp-checkout-bar">
+            <span id="mcp-cart-total">0 items · $0.00</span>
+            <button id="mcp-checkout-button" class="mk-mcp-checkout" type="button" disabled>Checkout</button>
+        </div>
+    </section>
+
+    <section class="mk-mcp-note" aria-labelledby="mcp-endpoint-title">
+        <h2 id="mcp-endpoint-title">Connect your MCP client</h2>
+        <p>Use this endpoint with an MCP-compatible client when connected through the Utopia gateway:</p>
+        <code>/mcp</code>
+        <p class="mk-finePrint">When running the MCP server directly, use
+            <code>http://localhost:3005/mcp</code>.</p>
+    </section>
+
+    <section class="mk-mcp-section" aria-labelledby="mcp-flow-title">
+        <p class="mk-eyebrow">How it works</p>
+        <h2 id="mcp-flow-title">Your assistant shops. You approve.</h2>
+        <ol class="mk-mcp-steps">
+            <li><strong>Browse and prepare.</strong> Your assistant uses MCP tools to browse the
+                catalog and build a cart.</li>
+            <li><strong>Receive a checkout link.</strong> The assistant sends the order to your
+                browser or phone; it cannot complete the purchase itself.</li>
+            <li><strong>Present only what is needed.</strong> Age-restricted items request proof
+                that you are over 18. Every order requests a payment credential.</li>
+            <li><strong>Approve the payment.</strong> The Marketplace verifies the credentials and
+                UPay settles the transaction after you approve it when the Multipaz backend is
+                configured.</li>
+        </ol>
+    </section>
+
+    <section class="mk-mcp-section mk-mcp-section--quiet" aria-labelledby="mcp-safety-title">
+        <p class="mk-eyebrow">Why it is safe to hand off</p>
+        <h2 id="mcp-safety-title">The assistant never gets the final say.</h2>
+        <p>The checkout gate derives the amount from the Marketplace catalog, checks it against what
+            your wallet signed, and re-checks the age policy over the disclosed claims. Verification
+            happens before settlement, so an order the policy refuses is never charged.</p>
+    </section>
+
+    <p class="mk-finePrint">Utopia is a fictional demo environment. Local development uses a
+        stand-in verifier; a configured Multipaz backend verifies credentials and settles through
+        UPay.</p>
+</main>
+<script src="catalog.js"></script>
+<script src="mcp-demo.js"></script>
+</body>
+</html>

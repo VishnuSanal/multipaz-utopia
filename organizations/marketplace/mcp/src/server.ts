@@ -1,21 +1,9 @@
 import { createStorefront } from "@openmobilehub/credentagent-storefront/server";
-import type { CartStore, CompletedOrderRecord, OrderStore } from "@openmobilehub/credentagent-storefront/server";
-import type { Order } from "@openmobilehub/credentagent-storefront";
+import type { CompletedOrderRecord, OrderStore } from "@openmobilehub/credentagent-storefront/server";
+import { createOrder, type Order } from "@openmobilehub/credentagent-storefront";
 import { CredentAgent, required, age, payment } from "@openmobilehub/credentagent-gate";
 import { DEFAULT_CATALOG_TTL_MS, httpCatalog, type HttpCatalog } from "./catalog.js";
 import { multipazUpayVerifier, standInVerifier, type StandInMode } from "./verifier.js";
-
-// One cart for every MCP session: Claude's remote connector opens a fresh session per tool call,
-// so a per-session cart would come back empty on the next call. Fine for a single-user demo.
-class GlobalCartStore implements CartStore {
-  private cart = new Map<string, number>();
-  async read(_sessionId: string): Promise<Map<string, number>> {
-    return new Map(this.cart);
-  }
-  async write(_sessionId: string, cart: Map<string, number>): Promise<void> {
-    this.cart = new Map(cart);
-  }
-}
 
 export interface BuildStoreOptions {
   baseUrl?: string;
@@ -81,16 +69,53 @@ export function buildStore(opts: BuildStoreOptions = {}) {
     ...(opts.createdOrderStore ? { createdOrderStore: opts.createdOrderStore } : {}),
     ...(opts.completedOrderStore ? { orderStore: opts.completedOrderStore } : {}),
     allowEphemeralKey: true,
-    // Stateless: Claude's connector sends no session id, and the stateful transport would reject
-    // those requests with "No valid session" — which surfaces as "could not load the MCP app".
+    // Stateless transport is required for connector/serverless requests without a session header.
+    // Storefront 0.5 carries a signed cart id between calls, so each browser conversation keeps
+    // its own cart rather than sharing the global fallback used by the 0.4 demo.
     statelessMcp: true,
-    cartStore: new GlobalCartStore(),
     verifier,
   });
 
   const credentagent = new CredentAgent({ credentials: [ageCred, payCred] });
   credentagent.mount(store.app);
   store.gate((order) => credentagent.requirements(order, [required(ageCred), required(payCred)]));
+
+  // A presentation-only browser surface for the MCP showcase. It deliberately has no
+  // price, currency, or age fields in its request: those are always re-derived from
+  // the same live catalog used by the MCP `checkout` tool. The response is the normal
+  // checkout page, which runs the mounted credential and payment ceremony.
+  const demoOrderStore = opts.createdOrderStore;
+  if (demoOrderStore) {
+    store.app.post("/mcp/demo-checkout", async (req, res) => {
+      const rawItems = req.body?.items;
+      if (!Array.isArray(rawItems) || rawItems.length === 0) {
+        res.status(400).json({ error: "Add at least one item before checkout." });
+        return;
+      }
+
+      const items = rawItems.map((item: unknown) => {
+        const value = item as { productId?: unknown; quantity?: unknown };
+        return {
+          productId: typeof value.productId === "string" ? value.productId : "",
+          quantity: typeof value.quantity === "number" ? value.quantity : NaN,
+        };
+      });
+      if (items.some((item) => !/^p\d+$/.test(item.productId) || !Number.isInteger(item.quantity) || item.quantity < 1)) {
+        res.status(400).json({ error: "Cart items must have a valid product and quantity." });
+        return;
+      }
+
+      try {
+        const products = await catalog.load();
+        const order = createOrder(items, `ORD-${Math.random().toString(36).slice(2, 8)}`, products);
+        await demoOrderStore.write(order.id, order);
+        res.status(201).json({ orderId: order.id, checkoutUrl: `/checkout?order=${encodeURIComponent(order.id)}` });
+      } catch (err) {
+        console.error("Could not create showcase checkout", err);
+        res.status(422).json({ error: "Could not create this checkout. Please refresh the catalog and try again." });
+      }
+    });
+  }
 
   return { store, catalog, usingStandIn: !kotlinBase };
 }
