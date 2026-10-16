@@ -70,7 +70,11 @@ jobs:
         run: |
           set -euo pipefail
           gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
-          docker push "$IMAGE"
+          if docker manifest inspect "$IMAGE" >/dev/null 2>&1; then
+            echo "Immutable image already exists; reusing $IMAGE"
+          else
+            docker push "$IMAGE"
+          fi
 
       - name: Make space and record the rollback image on the VM
         env:
