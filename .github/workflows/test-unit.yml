@@ -1,0 +1,13 @@
+name: Test unit
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Detekt to check for doc coverage
+        run: echo "detekt"
+      - name: Fail if Detekt failed
+        run: exit 1
